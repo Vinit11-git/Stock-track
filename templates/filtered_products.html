@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Filtered Products | StockTrack{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='filtered_products.css') }}"
+>
+{% endblock %}
+
+{% block page_title %}
+    {% if status_type == "expired" %}
+        Expired Products
+    {% elif status_type == "expiring-soon" %}
+        Expiring Soon
+    {% elif status_type == "low-stock" %}
+        Low Stock
+    {% else %}
+        Filtered Products
+    {% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+View products that currently require attention
+{% endblock %}
+
+
+{% block content %}
+
+<div class="filtered-page-heading">
+
+    <div>
+        <h3>
+            {% if status_type == "expired" %}
+                Expired Products
+            {% elif status_type == "expiring-soon" %}
+                Products Expiring Soon
+            {% elif status_type == "low-stock" %}
+                Low Stock Products
+            {% else %}
+                Filtered Products
+            {% endif %}
+        </h3>
+
+        <p>
+            {% if status_type == "expired" %}
+                These products have passed their expiry date.
+            {% elif status_type == "expiring-soon" %}
+                These products will expire within the next seven days.
+            {% elif status_type == "low-stock" %}
+                These products have five units or fewer remaining.
+            {% else %}
+                Products matching the selected inventory status.
+            {% endif %}
+        </p>
+    </div>
+
+
+    <div class="filtered-heading-actions">
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="secondary-button"
+        >
+            Dashboard
+        </a>
+
+        <a
+            href="{{ url_for('view_products') }}"
+            class="primary-button"
+        >
+            All Products
+        </a>
+
+    </div>
+
+</div>
+
+
+<section
+    class="
+        filtered-status-banner
+
+        {% if status_type == 'expired' %}
+            filtered-banner-expired
+        {% elif status_type == 'expiring-soon' %}
+            filtered-banner-expiring
+        {% elif status_type == 'low-stock' %}
+            filtered-banner-low
+        {% endif %}
+    "
+>
+
+    <div class="filtered-banner-icon">
+
+        {% if status_type == "expired" %}
+            ×
+        {% elif status_type == "expiring-soon" %}
+            ◷
+        {% elif status_type == "low-stock" %}
+            !
+        {% else %}
+            □
+        {% endif %}
+
+    </div>
+
+
+    <div>
+
+        <span>Products Found</span>
+
+        <strong>{{ products|length }}</strong>
+
+    </div>
+
+</section>
+
+
+<section class="filtered-products-panel">
+
+    <div class="filtered-products-panel-header">
+
+        <div>
+            <h3>Product List</h3>
+
+            <p>
+                Showing {{ products|length }}
+                product{% if products|length != 1 %}s{% endif %}
+            </p>
+        </div>
+
+        {% if status_type == "low-stock" %}
+
+            <a
+                href="{{ url_for('import_github') }}"
+                class="secondary-button"
+            >
+                Import Delivery
+            </a>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if products %}
+
+        <div class="filtered-table-wrapper">
+
+            <table class="filtered-products-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th class="filtered-actions-heading">
+                            Actions
+                        </th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for product in products %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="filtered-product-identity">
+
+                                    <div class="filtered-product-letter">
+                                        {{ product["name"][0]|upper }}
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            {{ product["name"] }}
+                                        </strong>
+
+                                        <span>
+                                            Product #{{ product["id"] }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="filtered-category-badge">
+                                    {{ product["category"] }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="filtered-quantity">
+
+                                    <strong>
+                                        {{ product["quantity"] }}
+                                    </strong>
+
+                                    <span>units</span>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="filtered-expiry">
+
+                                    <strong>
+                                        {{ product["expiry_date"] }}
+                                    </strong>
+
+                                    {% if product["status"] == "Expired" %}
+
+                                        <span class="filtered-expiry-danger">
+                                            Expired
+                                        </span>
+
+                                    {% elif product["status"] == "Expiring Soon" %}
+
+                                        <span class="filtered-expiry-warning">
+                                            Check immediately
+                                        </span>
+
+                                    {% else %}
+
+                                        <span>Valid</span>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <span
+                                    class="
+                                        product-status
+                                        product-status-{{ product['status']|lower|replace(' ', '-') }}
+                                    "
+                                >
+                                    <span class="status-badge-dot"></span>
+
+                                    {{ product["status"] }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="filtered-product-actions">
+
+                                    <a
+                                        href="{{ url_for(
+                                            'stock_update',
+                                            product_id=product['id']
+                                        ) }}"
+                                        class="product-action-button stock-action-button"
+                                    >
+                                        Stock
+                                    </a>
+
+                                    <a
+                                        href="{{ url_for(
+                                            'edit_product',
+                                            product_id=product['id']
+                                        ) }}"
+                                        class="product-action-button edit-action-button"
+                                    >
+                                        Edit
+                                    </a>
+
+<form
+    method="POST"
+    action="{{ url_for(
+        'delete_product',
+        product_id=product['id']
+    ) }}"
+    class="product-delete-form"
+    onsubmit="return confirm(
+        'Are you sure you want to delete {{ product['name'] }}? This action cannot be undone.'
+    );"
+>
+    <button
+        type="submit"
+        class="product-action-button delete-action-button"
+    >
+        Delete
+    </button>
+</form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="filtered-empty-state">
+
+            <div class="filtered-empty-icon">
+                ✓
+            </div>
+
+            <h3>No products found</h3>
+
+            <p>
+                There are currently no products matching this status.
+            </p>
+
+            <a
+                href="{{ url_for('view_products') }}"
+                class="primary-button"
+            >
+                View All Products
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Add Product | StockTrack{% endblock %}
+
+{% block page_title %}Add New Product{% endblock %}
+
+{% block page_subtitle %}
+Add a new product to your shop inventory
+{% endblock %}
+
+
+{% block content %}
+
+<div class="page-heading">
+
+    <div>
+        <h3>Product Information</h3>
+        <p>Enter the details of the new product.</p>
+    </div>
+
+    <a
+        href="{{ url_for('view_products') }}"
+        class="secondary-button"
+    >
+        View Products
+    </a>
+
+</div>
+
+
+<form
+    method="POST"
+    action="{{ url_for('add_product') }}"
+    class="product-form"
+>
+
+    <section class="form-card">
+
+        <div class="form-card-header">
+
+            <div class="form-card-icon">＋</div>
+
+            <div>
+                <h3>Basic Details</h3>
+                <p>Information used to identify and manage the product.</p>
+            </div>
+
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="form-group form-group-full">
+
+                <label for="name">
+                    Product Name
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ form_data.get('name', '') }}"
+                    placeholder="Example: Coca-Cola 500ml"
+                    maxlength="100"
+                    required
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="category">
+                    Category
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="category"
+                    name="category"
+                    value="{{ form_data.get('category', '') }}"
+                    placeholder="Example: Minerals"
+                    list="category-list"
+                    maxlength="50"
+                    required
+                    autocomplete="off"
+                >
+
+                <datalist id="category-list">
+                    <option value="Minerals">
+                    <option value="Crisps">
+                    <option value="Chocolate">
+                    <option value="Confectionery">
+                    <option value="Dairy">
+                    <option value="Frozen Food">
+                    <option value="Groceries">
+                    <option value="Household">
+                    <option value="Personal Care">
+                    <option value="Bakery">
+                </datalist>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="quantity">
+                    Opening Quantity
+                    <span class="required">*</span>
+                </label>
+
+                <div class="input-with-suffix">
+
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        value="{{ form_data.get('quantity', '') }}"
+                        placeholder="0"
+                        min="0"
+                        step="1"
+                        required
+                    >
+
+                    <span>Units</span>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group form-group-full">
+
+                <label for="expiry_date">
+                    Expiry Date
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="date"
+                    id="expiry_date"
+                    name="expiry_date"
+                    value="{{ form_data.get('expiry_date', '') }}"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="form-card stock-preview-card">
+
+        <div class="form-card-header">
+
+            <div class="form-card-icon">□</div>
+
+            <div>
+                <h3>Product Preview</h3>
+                <p>Review the information before adding the product.</p>
+            </div>
+
+        </div>
+
+
+        <div class="stock-preview-grid">
+
+            <div class="preview-item">
+                <span>Product</span>
+                <strong id="previewName">Not entered</strong>
+            </div>
+
+            <div class="preview-item">
+                <span>Category</span>
+                <strong id="previewCategory">Not entered</strong>
+            </div>
+
+            <div class="preview-item">
+                <span>Opening Stock</span>
+                <strong id="previewQuantity">0 units</strong>
+            </div>
+
+            <div class="preview-item">
+                <span>Expiry Date</span>
+                <strong id="previewExpiry">Not selected</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <div class="form-actions">
+
+        <a
+            href="{{ url_for('view_products') }}"
+            class="cancel-button"
+        >
+            Cancel
+        </a>
+
+        <button type="submit" class="primary-button">
+            <span>＋</span>
+            Add Product
+        </button>
+
+    </div>
+
+</form>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    const nameInput = document.getElementById("name");
+    const categoryInput = document.getElementById("category");
+    const quantityInput = document.getElementById("quantity");
+    const expiryInput = document.getElementById("expiry_date");
+
+    const previewName = document.getElementById("previewName");
+    const previewCategory = document.getElementById("previewCategory");
+    const previewQuantity = document.getElementById("previewQuantity");
+    const previewExpiry = document.getElementById("previewExpiry");
+
+
+    function updateNamePreview() {
+        previewName.textContent =
+            nameInput.value.trim() || "Not entered";
+    }
+
+
+    function updateCategoryPreview() {
+        previewCategory.textContent =
+            categoryInput.value.trim() || "Not entered";
+    }
+
+
+    function updateQuantityPreview() {
+        const quantity = Number(quantityInput.value || 0);
+
+        previewQuantity.textContent =
+            `${quantity} ${quantity === 1 ? "unit" : "units"}`;
+    }
+
+
+    function updateExpiryPreview() {
+        if (!expiryInput.value) {
+            previewExpiry.textContent = "Not selected";
+            return;
+        }
+
+        const selectedDate = new Date(
+            expiryInput.value + "T00:00:00"
+        );
+
+        previewExpiry.textContent =
+            selectedDate.toLocaleDateString("en-IE", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            });
+    }
+
+
+    nameInput.addEventListener("input", updateNamePreview);
+    categoryInput.addEventListener("input", updateCategoryPreview);
+    quantityInput.addEventListener("input", updateQuantityPreview);
+    expiryInput.addEventListener("change", updateExpiryPreview);
+
+
+    updateNamePreview();
+    updateCategoryPreview();
+    updateQuantityPreview();
+    updateExpiryPreview();
+</script>
+
+{% endblock %}

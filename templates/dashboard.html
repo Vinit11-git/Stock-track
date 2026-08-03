@@ -1,0 +1,579 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | StockTrack{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block page_subtitle %}
+Overview of your shop inventory and stock activity
+{% endblock %}
+
+
+{% block content %}
+
+<div class="dashboard-heading">
+
+    <div>
+        <h3>Inventory Overview</h3>
+        <p>Monitor stock levels, expiry alerts and recent activity.</p>
+    </div>
+
+    <a href="/add" class="primary-button">
+        <span>＋</span>
+        Add Product
+    </a>
+
+</div>
+
+
+<!-- Summary cards -->
+
+<section class="overview-grid">
+
+    <a href="/products" class="overview-card">
+
+        <div class="overview-card-top">
+
+            <div class="overview-icon overview-icon-primary">
+                □
+            </div>
+
+            <span class="overview-label">
+                Total Products
+            </span>
+
+        </div>
+
+        <div class="overview-value">
+            {{ total_products }}
+        </div>
+
+        <div class="overview-footer">
+            View all products
+            <span>→</span>
+        </div>
+
+    </a>
+
+
+    <a href="/products" class="overview-card">
+
+        <div class="overview-card-top">
+
+            <div class="overview-icon overview-icon-blue">
+                #
+            </div>
+
+            <span class="overview-label">
+                Total Stock Units
+            </span>
+
+        </div>
+
+        <div class="overview-value">
+            {{ total_quantity }}
+        </div>
+
+        <div class="overview-footer">
+            Across all products
+            <span>→</span>
+        </div>
+
+    </a>
+
+
+    <a href="/filter/low-stock"
+       class="overview-card overview-card-warning">
+
+        <div class="overview-card-top">
+
+            <div class="overview-icon overview-icon-warning">
+                !
+            </div>
+
+            <span class="overview-label">
+                Low Stock
+            </span>
+
+        </div>
+
+        <div class="overview-value">
+            {{ low_stock_count }}
+        </div>
+
+        <div class="overview-footer">
+            Products requiring stock
+            <span>→</span>
+        </div>
+
+    </a>
+
+
+    <a href="/filter/expiring-soon"
+       class="overview-card overview-card-expiring">
+
+        <div class="overview-card-top">
+
+            <div class="overview-icon overview-icon-expiring">
+                ◷
+            </div>
+
+            <span class="overview-label">
+                Expiring Soon
+            </span>
+
+        </div>
+
+        <div class="overview-value">
+            {{ expiring_soon_count }}
+        </div>
+
+        <div class="overview-footer">
+            Check expiry dates
+            <span>→</span>
+        </div>
+
+    </a>
+
+
+    <a href="/filter/expired"
+       class="overview-card overview-card-danger">
+
+        <div class="overview-card-top">
+
+            <div class="overview-icon overview-icon-danger">
+                ×
+            </div>
+
+            <span class="overview-label">
+                Expired
+            </span>
+
+        </div>
+
+        <div class="overview-value">
+            {{ expired_count }}
+        </div>
+
+        <div class="overview-footer">
+            Remove expired products
+            <span>→</span>
+        </div>
+
+    </a>
+
+</section>
+
+
+<!-- Main dashboard area -->
+
+<div class="dashboard-main-grid">
+
+    <section class="dashboard-panel">
+
+        <div class="dashboard-panel-header">
+
+            <div>
+                <h3>Stock Status</h3>
+                <p>Current condition of your inventory</p>
+            </div>
+
+            <a href="/products" class="panel-link">
+                View products
+            </a>
+
+        </div>
+
+
+        <div class="stock-status-list">
+
+            <a href="/products" class="stock-status-item">
+
+                <div class="status-information">
+
+                    <span class="status-indicator status-in-stock"></span>
+
+                    <div>
+                        <strong>In Stock</strong>
+                        <small>Products with healthy stock</small>
+                    </div>
+
+                </div>
+
+                <span class="status-count">
+                    {{ in_stock_count }}
+                </span>
+
+            </a>
+
+
+            <a href="/filter/low-stock"
+               class="stock-status-item">
+
+                <div class="status-information">
+
+                    <span class="status-indicator status-low-stock"></span>
+
+                    <div>
+                        <strong>Low Stock</strong>
+                        <small>Products that may need restocking</small>
+                    </div>
+
+                </div>
+
+                <span class="status-count">
+                    {{ low_stock_count }}
+                </span>
+
+            </a>
+
+
+            <a href="/filter/expiring-soon"
+               class="stock-status-item">
+
+                <div class="status-information">
+
+                    <span class="status-indicator status-expiring"></span>
+
+                    <div>
+                        <strong>Expiring Soon</strong>
+                        <small>Products approaching expiry</small>
+                    </div>
+
+                </div>
+
+                <span class="status-count">
+                    {{ expiring_soon_count }}
+                </span>
+
+            </a>
+
+
+            <a href="/filter/expired"
+               class="stock-status-item">
+
+                <div class="status-information">
+
+                    <span class="status-indicator status-expired"></span>
+
+                    <div>
+                        <strong>Expired</strong>
+                        <small>Products requiring attention</small>
+                    </div>
+
+                </div>
+
+                <span class="status-count">
+                    {{ expired_count }}
+                </span>
+
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <section class="dashboard-panel">
+
+        <div class="dashboard-panel-header">
+
+            <div>
+                <h3>Quick Actions</h3>
+                <p>Common inventory operations</p>
+            </div>
+
+        </div>
+
+
+        <div class="quick-actions-grid">
+
+            <a href="/add" class="quick-action-card">
+
+                <div class="quick-action-icon">
+                    ＋
+                </div>
+
+                <div>
+                    <strong>Add Product</strong>
+                    <span>Create a new product</span>
+                </div>
+
+            </a>
+
+
+            <a href="/scan-qr" class="quick-action-card">
+
+                <div class="quick-action-icon">
+                    ▣
+                </div>
+
+                <div>
+                    <strong>Scan QR Code</strong>
+                    <span>Import delivery stock</span>
+                </div>
+
+            </a>
+
+
+            <a href="/import-github"
+               class="quick-action-card">
+
+                <div class="quick-action-icon">
+                    ⇩
+                </div>
+
+                <div>
+                    <strong>Import Products</strong>
+                    <span>Import from GitHub CSV</span>
+                </div>
+
+            </a>
+
+
+            <a href="/stock-history"
+               class="quick-action-card">
+
+                <div class="quick-action-icon">
+                    ↕
+                </div>
+
+                <div>
+                    <strong>Stock History</strong>
+                    <span>View stock movements</span>
+                </div>
+
+            </a>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<!-- Recent products -->
+
+<section class="dashboard-panel dashboard-table-panel">
+
+    <div class="dashboard-panel-header">
+
+        <div>
+            <h3>Recently Added Products</h3>
+            <p>Your latest inventory entries</p>
+        </div>
+
+        <a href="/products" class="panel-link">
+            View all products
+        </a>
+
+    </div>
+
+
+    {% if recent_products %}
+
+        <div class="dashboard-table-wrapper">
+
+            <table class="dashboard-table">
+
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for product in recent_products %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="product-table-name">
+
+                                    <div class="product-table-avatar">
+                                        {{ product.name[0]|upper }}
+                                    </div>
+
+                                    <strong>
+                                        {{ product.name }}
+                                    </strong>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                {{ product.category }}
+                            </td>
+
+                            <td>
+                                <strong>{{ product.quantity }}</strong>
+                                units
+                            </td>
+
+                            <td>
+                                {{ product.expiry_date }}
+                            </td>
+
+                            <td>
+
+                                <span class="product-status
+                                    product-status-{{ product.status|lower|replace(' ', '-') }}">
+
+                                    {{ product.status }}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <a
+                                    href="/stock-update/{{ product.id }}"
+                                    class="table-action-button"
+                                >
+                                    Update Stock
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="dashboard-empty-state">
+
+            <div class="empty-state-icon">□</div>
+
+            <h4>No products added yet</h4>
+
+            <p>
+                Add your first product to begin managing your inventory.
+            </p>
+
+            <a href="/add" class="primary-button">
+                Add Product
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+
+<!-- Recent stock movements -->
+
+<section class="dashboard-panel dashboard-table-panel">
+
+    <div class="dashboard-panel-header">
+
+        <div>
+            <h3>Recent Stock Activity</h3>
+            <p>Latest stock-in and stock-out movements</p>
+        </div>
+
+        <a href="/stock-history" class="panel-link">
+            View full history
+        </a>
+
+    </div>
+
+
+    {% if recent_movements %}
+
+        <div class="dashboard-table-wrapper">
+
+            <table class="dashboard-table">
+
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Movement</th>
+                        <th>Quantity</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for movement in recent_movements %}
+
+                        <tr>
+
+                            <td>
+                                {{ movement.movement_date }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ movement.product_name }}
+                                </strong>
+                            </td>
+
+                            <td>
+
+                                <span class="movement-badge
+                                    movement-{{ movement.movement_type|lower|replace(' ', '-') }}">
+
+                                    {{ movement.movement_type }}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ movement.quantity }}
+                                </strong>
+                            </td>
+
+                            <td class="movement-note">
+                                {{ movement.note or "No note" }}
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="dashboard-empty-state">
+
+            <div class="empty-state-icon">↕</div>
+
+            <h4>No stock movements yet</h4>
+
+            <p>
+                Stock-in and stock-out activity will appear here.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

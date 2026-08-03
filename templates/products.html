@@ -1,0 +1,564 @@
+{% extends "base.html" %}
+
+{% block title %}Products | StockTrack{% endblock %}
+
+{% block page_title %}Products{% endblock %}
+
+{% block page_subtitle %}
+View and manage all products in your shop inventory
+{% endblock %}
+
+
+{% block content %}
+
+<div class="products-heading">
+
+    <div>
+        <h3>Product Inventory</h3>
+        <p>
+            Search, filter and update products stored in your system.
+        </p>
+    </div>
+
+    <div class="products-heading-actions">
+
+        <a href="/scan-qr" class="secondary-button">
+            <span>▣</span>
+            Scan Delivery
+        </a>
+
+        <a href="/add" class="primary-button">
+            <span>＋</span>
+            Add Product
+        </a>
+
+    </div>
+
+</div>
+
+
+<section class="product-summary-grid">
+
+    <div class="product-summary-card">
+
+        <div class="product-summary-icon summary-icon-primary">
+            □
+        </div>
+
+        <div>
+            <span>Total Products</span>
+            <strong>{{ total_products }}</strong>
+        </div>
+
+    </div>
+
+
+    <div class="product-summary-card">
+
+        <div class="product-summary-icon summary-icon-blue">
+            #
+        </div>
+
+        <div>
+            <span>Total Stock Units</span>
+            <strong>{{ total_quantity }}</strong>
+        </div>
+
+    </div>
+
+
+    <div class="product-summary-card">
+
+        <div class="product-summary-icon summary-icon-warning">
+            !
+        </div>
+
+        <div>
+            <span>Low Stock</span>
+            <strong>{{ low_stock_count }}</strong>
+        </div>
+
+    </div>
+
+
+    <div class="product-summary-card">
+
+        <div class="product-summary-icon summary-icon-expiring">
+            ◷
+        </div>
+
+        <div>
+            <span>Expiring Soon</span>
+            <strong>{{ expiring_soon_count }}</strong>
+        </div>
+
+    </div>
+
+
+    <div class="product-summary-card">
+
+        <div class="product-summary-icon summary-icon-danger">
+            ×
+        </div>
+
+        <div>
+            <span>Expired</span>
+            <strong>{{ expired_count }}</strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="products-panel">
+
+    <form method="GET" action="/products" class="products-toolbar">
+
+        <div class="products-search-box">
+
+            <span class="products-search-icon">⌕</span>
+
+            <input
+                type="search"
+                name="q"
+                value="{{ search_term }}"
+                placeholder="Search by product name or category"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <div class="products-filter-group">
+
+            <select name="category" aria-label="Filter by category">
+
+                <option value="">All Categories</option>
+
+                {% for category in categories %}
+
+                    <option
+                        value="{{ category }}"
+                        {% if category_filter == category %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ category }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <select name="status" aria-label="Filter by status">
+
+                <option value="">All Statuses</option>
+
+                <option
+                    value="In Stock"
+                    {% if status_filter == "In Stock" %}
+                        selected
+                    {% endif %}
+                >
+                    In Stock
+                </option>
+
+                <option
+                    value="Low Stock"
+                    {% if status_filter == "Low Stock" %}
+                        selected
+                    {% endif %}
+                >
+                    Low Stock
+                </option>
+
+                <option
+                    value="Expiring Soon"
+                    {% if status_filter == "Expiring Soon" %}
+                        selected
+                    {% endif %}
+                >
+                    Expiring Soon
+                </option>
+
+                <option
+                    value="Expired"
+                    {% if status_filter == "Expired" %}
+                        selected
+                    {% endif %}
+                >
+                    Expired
+                </option>
+
+            </select>
+
+
+            <select name="sort" aria-label="Sort products">
+
+                <option
+                    value="expiry_soonest"
+                    {% if sort_option == "expiry_soonest" %}
+                        selected
+                    {% endif %}
+                >
+                    Expiry: Soonest
+                </option>
+
+                <option
+                    value="newest"
+                    {% if sort_option == "newest" %}
+                        selected
+                    {% endif %}
+                >
+                    Recently Added
+                </option>
+
+                <option
+                    value="name_az"
+                    {% if sort_option == "name_az" %}
+                        selected
+                    {% endif %}
+                >
+                    Name: A to Z
+                </option>
+
+                <option
+                    value="name_za"
+                    {% if sort_option == "name_za" %}
+                        selected
+                    {% endif %}
+                >
+                    Name: Z to A
+                </option>
+
+                <option
+                    value="quantity_low"
+                    {% if sort_option == "quantity_low" %}
+                        selected
+                    {% endif %}
+                >
+                    Quantity: Low to High
+                </option>
+
+                <option
+                    value="quantity_high"
+                    {% if sort_option == "quantity_high" %}
+                        selected
+                    {% endif %}
+                >
+                    Quantity: High to Low
+                </option>
+
+            </select>
+
+
+            <button type="submit" class="filter-button">
+                Apply Filters
+            </button>
+
+
+            {% if search_term or category_filter or status_filter %}
+
+                <a href="/products" class="clear-filter-button">
+                    Clear
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+
+    <div class="products-result-bar">
+
+        <span>
+            Showing
+            <strong>{{ products|length }}</strong>
+            product{% if products|length != 1 %}s{% endif %}
+        </span>
+
+        {% if search_term %}
+
+            <span class="active-filter-badge">
+                Search: {{ search_term }}
+            </span>
+
+        {% endif %}
+
+        {% if category_filter %}
+
+            <span class="active-filter-badge">
+                Category: {{ category_filter }}
+            </span>
+
+        {% endif %}
+
+        {% if status_filter %}
+
+            <span class="active-filter-badge">
+                Status: {{ status_filter }}
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if products %}
+
+        <div class="products-table-wrapper">
+
+            <table class="products-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th class="actions-heading">Actions</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for product in products %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="product-identity">
+
+                                    <div class="product-image-placeholder">
+
+                                        {% if product.image_path %}
+
+                                            <img
+                                                src="{{ url_for('static', filename=product.image_path) }}"
+                                                alt="{{ product.name }}"
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"
+                                            >
+
+                                            <span class="product-letter product-letter-hidden">
+                                                {{ product.name[0]|upper }}
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="product-letter">
+                                                {{ product.name[0]|upper }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <div class="product-name-details">
+
+                                        <strong>{{ product.name }}</strong>
+
+                                        <span>
+                                            Product ID: #{{ product.id }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="category-badge">
+                                    {{ product.category }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="quantity-display">
+
+                                    <strong>{{ product.quantity }}</strong>
+                                    <span>units</span>
+
+                                    <div class="quantity-bar">
+
+                                        <span
+                                            class="
+                                                {% if product.quantity <= 5 %}
+                                                    quantity-bar-low
+                                                {% elif product.quantity <= 15 %}
+                                                    quantity-bar-medium
+                                                {% else %}
+                                                    quantity-bar-high
+                                                {% endif %}
+                                            "
+                                            style="width:
+                                                {% if product.quantity >= 30 %}
+                                                    100%
+                                                {% else %}
+                                                    {{ (product.quantity / 30 * 100)|int }}%
+                                                {% endif %}
+                                            "
+                                        ></span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="expiry-display">
+
+                                    <strong>
+                                        {{ product.expiry_date }}
+                                    </strong>
+
+                                    {% if product.status == "Expired" %}
+
+                                        <span class="expiry-text-danger">
+                                            Expired
+                                        </span>
+
+                                    {% elif product.status == "Expiring Soon" %}
+
+                                        <span class="expiry-text-warning">
+                                            Check soon
+                                        </span>
+
+                                    {% else %}
+
+                                        <span>
+                                            Valid
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="
+                                    product-status
+                                    product-status-{{ product.status|lower|replace(' ', '-') }}
+                                ">
+                                    <span class="status-badge-dot"></span>
+                                    {{ product.status }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="product-actions">
+
+                                    <a
+                                        href="/stock-update/{{ product.id }}"
+                                        class="product-action-button stock-action-button"
+                                        title="Update stock"
+                                    >
+                                        Stock
+                                    </a>
+
+                                    <a
+                                        href="/edit/{{ product.id }}"
+                                        class="product-action-button edit-action-button"
+                                        title="Edit product"
+                                    >
+                                        Edit
+                                    </a>
+
+<form
+    method="POST"
+    action="{{ url_for(
+        'delete_product',
+        product_id=product['id']
+    ) }}"
+    class="product-delete-form"
+    onsubmit="return confirm(
+        'Are you sure you want to delete {{ product['name'] }}? This action cannot be undone.'
+    );"
+>
+    <button
+        type="submit"
+        class="product-action-button delete-action-button"
+    >
+        Delete
+    </button>
+</form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="products-empty-state">
+
+            <div class="products-empty-icon">
+                □
+            </div>
+
+            {% if search_term or category_filter or status_filter %}
+
+                <h3>No matching products found</h3>
+
+                <p>
+                    Try changing your search term or removing some filters.
+                </p>
+
+                <a href="/products" class="secondary-button">
+                    Clear Filters
+                </a>
+
+            {% else %}
+
+                <h3>No products added yet</h3>
+
+                <p>
+                    Add your first product to begin managing your shop inventory.
+                </p>
+
+                <a href="/add" class="primary-button">
+                    <span>＋</span>
+                    Add First Product
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

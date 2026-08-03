@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Scan QR Code | StockTrack{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='scan_qr.css') }}"
+>
+{% endblock %}
+
+{% block page_title %}Scan QR Code{% endblock %}
+
+{% block page_subtitle %}
+Scan a delivery QR code containing a GitHub raw CSV URL
+{% endblock %}
+
+
+{% block content %}
+
+<div class="qr-page-heading">
+
+    <div>
+        <h3>Import Stock Using QR Code</h3>
+
+        <p>
+            Scan a supplier QR code or manually paste the CSV link.
+        </p>
+    </div>
+
+    <a
+        href="{{ url_for('view_products') }}"
+        class="secondary-button"
+    >
+        Back to Products
+    </a>
+
+</div>
+
+
+<div class="qr-page-layout">
+
+    <section class="qr-scanner-card">
+
+        <div class="qr-card-header">
+
+            <div class="qr-card-icon">
+                ▣
+            </div>
+
+            <div>
+                <h3>Camera Scanner</h3>
+
+                <p>
+                    Allow camera access when requested by your browser.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="qr-scanner-body">
+
+            <div id="reader"></div>
+
+            <div
+                class="qr-scan-status"
+                id="scanStatus"
+            >
+                <span class="qr-status-dot"></span>
+
+                Waiting for QR code
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="qr-import-card">
+
+        <div class="qr-card-header">
+
+            <div class="qr-card-icon">
+                ⇩
+            </div>
+
+            <div>
+                <h3>Import Delivery</h3>
+
+                <p>
+                    Review the scanned link before importing products.
+                </p>
+            </div>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for('import_github') }}"
+            class="qr-import-form"
+            id="qrImportForm"
+        >
+
+            <div class="qr-form-group">
+
+                <label for="csv_url">
+                    GitHub Raw CSV URL
+                    <span class="required">*</span>
+                </label>
+
+                <textarea
+                    id="csv_url"
+                    name="csv_url"
+                    rows="5"
+                    placeholder="https://raw.githubusercontent.com/username/repository/main/products.csv"
+                    required
+                ></textarea>
+
+                <small>
+                    The link must begin with
+                    raw.githubusercontent.com and point to a CSV file.
+                </small>
+
+            </div>
+
+
+            <div
+                class="qr-validation-message"
+                id="urlValidationMessage"
+                hidden
+            ></div>
+
+
+            <div class="qr-format-example">
+
+                <strong>Required CSV columns</strong>
+
+                <code>
+                    name, category, quantity, expiry_date, image_path
+                </code>
+
+                <p>
+                    The image_path column can remain empty.
+                </p>
+
+            </div>
+
+
+            <div class="qr-import-actions">
+
+                <button
+                    type="button"
+                    class="cancel-button"
+                    id="clearQrButton"
+                >
+                    Clear
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                    id="importQrButton"
+                    disabled
+                >
+                    Import Scanned Stock
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+    const csvUrlInput =
+        document.getElementById("csv_url");
+
+    const importButton =
+        document.getElementById("importQrButton");
+
+    const clearButton =
+        document.getElementById("clearQrButton");
+
+    const scanStatus =
+        document.getElementById("scanStatus");
+
+    const validationMessage =
+        document.getElementById("urlValidationMessage");
+
+    const importForm =
+        document.getElementById("qrImportForm");
+
+    let lastScannedValue = "";
+
+
+    function isValidGitHubCsvUrl(value) {
+        try {
+            const parsedUrl = new URL(value);
+
+            return (
+                parsedUrl.protocol === "https:" &&
+                parsedUrl.hostname === "raw.githubusercontent.com" &&
+                parsedUrl.pathname.toLowerCase().endsWith(".csv")
+            );
+        } catch (error) {
+            return false;
+        }
+    }
+
+
+    function updateUrlValidation() {
+        const value = csvUrlInput.value.trim();
+
+        if (!value) {
+            importButton.disabled = true;
+            validationMessage.hidden = true;
+            return;
+        }
+
+        const validUrl =
+            isValidGitHubCsvUrl(value);
+
+        importButton.disabled = !validUrl;
+        validationMessage.hidden = false;
+
+        if (validUrl) {
+            validationMessage.textContent =
+                "Valid GitHub CSV link. Ready to import.";
+
+            validationMessage.className =
+                "qr-validation-message qr-validation-success";
+        } else {
+            validationMessage.textContent =
+                "Enter a valid raw GitHub CSV URL.";
+
+            validationMessage.className =
+                "qr-validation-message qr-validation-error";
+        }
+    }
+
+
+    function onScanSuccess(decodedText) {
+        const scannedValue = decodedText.trim();
+
+        if (scannedValue === lastScannedValue) {
+            return;
+        }
+
+        lastScannedValue = scannedValue;
+        csvUrlInput.value = scannedValue;
+
+        updateUrlValidation();
+
+        if (isValidGitHubCsvUrl(scannedValue)) {
+            scanStatus.innerHTML = `
+                <span class="qr-status-dot qr-status-success"></span>
+                QR code scanned successfully
+            `;
+        } else {
+            scanStatus.innerHTML = `
+                <span class="qr-status-dot qr-status-error"></span>
+                QR scanned, but the URL is not valid
+            `;
+        }
+    }
+
+
+    function onScanFailure() {
+        // Scanner continues running while no QR code is detected.
+    }
+
+
+    csvUrlInput.addEventListener(
+        "input",
+        updateUrlValidation
+    );
+
+
+    clearButton.addEventListener("click", function () {
+        csvUrlInput.value = "";
+        lastScannedValue = "";
+
+        validationMessage.hidden = true;
+        importButton.disabled = true;
+
+        scanStatus.innerHTML = `
+            <span class="qr-status-dot"></span>
+            Waiting for QR code
+        `;
+
+        csvUrlInput.focus();
+    });
+
+
+    importForm.addEventListener("submit", function (event) {
+        if (!isValidGitHubCsvUrl(csvUrlInput.value.trim())) {
+            event.preventDefault();
+            updateUrlValidation();
+        }
+    });
+
+
+    const scanner = new Html5QrcodeScanner(
+        "reader",
+        {
+            fps: 10,
+
+            qrbox: {
+                width: 250,
+                height: 250
+            },
+
+            rememberLastUsedCamera: true
+        },
+        false
+    );
+
+    scanner.render(
+        onScanSuccess,
+        onScanFailure
+    );
+</script>
+
+{% endblock %}

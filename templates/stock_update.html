@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+{% set saved_form = form_data|default({}) %}
+
+{% block title %}Update Stock | StockTrack{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='stock_update.css') }}"
+>
+{% endblock %}
+
+{% block page_title %}Update Stock{% endblock %}
+
+{% block page_subtitle %}
+Record stock received or removed from your inventory
+{% endblock %}
+
+
+{% block content %}
+
+<div class="stock-update-heading">
+
+    <div>
+        <h3>Stock Movement</h3>
+        <p>Update the available quantity for this product.</p>
+    </div>
+
+    <a
+        href="{{ url_for('view_products') }}"
+        class="secondary-button"
+    >
+        Back to Products
+    </a>
+
+</div>
+
+
+<div class="stock-update-layout">
+
+    <section class="stock-update-product-card">
+
+        <div class="stock-update-product-header">
+
+            <div class="stock-update-product-letter">
+                {{ product["name"][0]|upper }}
+            </div>
+
+            <div class="stock-update-product-title">
+                <span>Selected Product</span>
+                <h3>{{ product["name"] }}</h3>
+                <p>{{ product["category"] }}</p>
+            </div>
+
+        </div>
+
+
+        <div class="stock-update-product-details">
+
+            <div class="stock-update-detail">
+
+                <span>Current Quantity</span>
+
+                <strong>
+                    {{ product["quantity"] }}
+                    <small>units</small>
+                </strong>
+
+            </div>
+
+
+            <div class="stock-update-detail">
+
+                <span>Expiry Date</span>
+
+                <strong>
+                    {{ product["expiry_date"] }}
+                </strong>
+
+            </div>
+
+
+            <div class="stock-update-detail">
+
+                <span>Product ID</span>
+
+                <strong>
+                    #{{ product["id"] }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <form
+        method="POST"
+        action="{{ url_for('stock_update', product_id=product['id']) }}"
+        class="stock-update-form-card"
+        id="stockUpdateForm"
+    >
+
+        <div class="stock-update-form-header">
+
+            <div>
+                <h3>Movement Details</h3>
+                <p>Select whether stock is entering or leaving the shop.</p>
+            </div>
+
+        </div>
+
+
+        <div class="stock-update-form-body">
+
+            <div class="stock-update-form-group">
+
+                <label class="stock-update-label">
+                    Movement Type
+                    <span class="required">*</span>
+                </label>
+
+
+                <div class="stock-movement-options">
+
+                    <label class="stock-movement-option stock-movement-in">
+
+                        <input
+                            type="radio"
+                            name="movement_type"
+                            value="IN"
+                            {% if saved_form.get("movement_type", "IN") == "IN" %}
+                                checked
+                            {% endif %}
+                        >
+
+                        <span class="stock-movement-option-content">
+
+                            <span class="stock-movement-icon">
+                                +
+                            </span>
+
+                            <span class="stock-movement-text">
+                                <strong>Stock In</strong>
+                                <small>Receive new stock or deliveries</small>
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <label class="stock-movement-option stock-movement-out">
+
+                        <input
+                            type="radio"
+                            name="movement_type"
+                            value="OUT"
+                            {% if saved_form.get("movement_type") == "OUT" %}
+                                checked
+                            {% endif %}
+                        >
+
+                        <span class="stock-movement-option-content">
+
+                            <span class="stock-movement-icon">
+                                −
+                            </span>
+
+                            <span class="stock-movement-text">
+                                <strong>Stock Out</strong>
+                                <small>Record sales, damage or waste</small>
+                            </span>
+
+                        </span>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <div class="stock-update-form-group">
+
+                <label
+                    for="quantity"
+                    class="stock-update-label"
+                >
+                    Movement Quantity
+                    <span class="required">*</span>
+                </label>
+
+                <div class="stock-update-input-suffix">
+
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        value="{{ saved_form.get('quantity', '') }}"
+                        min="1"
+                        step="1"
+                        placeholder="Enter quantity"
+                        required
+                    >
+
+                    <span>Units</span>
+
+                </div>
+
+                <small class="stock-update-field-help">
+                    Enter the number of units being added or removed.
+                </small>
+
+            </div>
+
+
+            <div class="stock-update-form-group">
+
+                <label
+                    for="note"
+                    class="stock-update-label"
+                >
+                    Note
+                    <span class="optional">Optional</span>
+                </label>
+
+                <textarea
+                    id="note"
+                    name="note"
+                    rows="4"
+                    maxlength="250"
+                    placeholder="Example: New delivery, damaged products or sold items"
+                >{{ saved_form.get("note", "") }}</textarea>
+
+                <div class="stock-update-note-footer">
+
+                    <small>
+                        Add a short reason for this movement.
+                    </small>
+
+                    <small id="noteCharacterCount">
+                        {{ saved_form.get("note", "")|length }} / 250
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="stock-update-preview">
+
+                <div class="stock-update-preview-item">
+
+                    <span>Current Stock</span>
+
+                    <strong>
+                        {{ product["quantity"] }} units
+                    </strong>
+
+                </div>
+
+
+                <div class="stock-update-preview-arrow">
+                    →
+                </div>
+
+
+                <div class="stock-update-preview-item">
+
+                    <span>New Stock</span>
+
+                    <strong
+                        id="newQuantityPreview"
+                        aria-live="polite"
+                    >
+                        {{ product["quantity"] }} units
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="stock-update-warning"
+                id="stockWarning"
+                role="alert"
+                hidden
+            >
+                The quantity being removed is greater than the available stock.
+            </div>
+
+        </div>
+
+
+        <div class="stock-update-form-actions">
+
+            <a
+                href="{{ url_for('view_products') }}"
+                class="cancel-button"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="primary-button"
+                id="stockSubmitButton"
+            >
+                Update Stock
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    const currentQuantity = Number(
+        "{{ product['quantity'] }}"
+    );
+
+    const quantityInput =
+        document.getElementById("quantity");
+
+    const movementInputs =
+        document.querySelectorAll(
+            'input[name="movement_type"]'
+        );
+
+    const newQuantityPreview =
+        document.getElementById("newQuantityPreview");
+
+    const stockWarning =
+        document.getElementById("stockWarning");
+
+    const stockSubmitButton =
+        document.getElementById("stockSubmitButton");
+
+    const noteInput =
+        document.getElementById("note");
+
+    const noteCharacterCount =
+        document.getElementById("noteCharacterCount");
+
+
+    function updateStockPreview() {
+        const selectedMovement =
+            document.querySelector(
+                'input[name="movement_type"]:checked'
+            );
+
+        if (!selectedMovement) {
+            return;
+        }
+
+        const movementType =
+            selectedMovement.value;
+
+        const movementQuantity =
+            Number(quantityInput.value || 0);
+
+        let newQuantity =
+            currentQuantity;
+
+        if (movementType === "IN") {
+            newQuantity =
+                currentQuantity + movementQuantity;
+        } else {
+            newQuantity =
+                currentQuantity - movementQuantity;
+        }
+
+        newQuantityPreview.textContent =
+            `${newQuantity} ${
+                newQuantity === 1 ? "unit" : "units"
+            }`;
+
+        const invalidStock =
+            movementType === "OUT" &&
+            newQuantity < 0;
+
+        stockWarning.hidden =
+            !invalidStock;
+
+        stockSubmitButton.disabled =
+            invalidStock;
+
+        newQuantityPreview.classList.toggle(
+            "stock-preview-invalid",
+            invalidStock
+        );
+    }
+
+
+    quantityInput.addEventListener(
+        "input",
+        updateStockPreview
+    );
+
+
+    movementInputs.forEach(function (input) {
+        input.addEventListener(
+            "change",
+            updateStockPreview
+        );
+    });
+
+
+    noteInput.addEventListener(
+        "input",
+        function () {
+            noteCharacterCount.textContent =
+                `${noteInput.value.length} / 250`;
+        }
+    );
+
+
+    updateStockPreview();
+</script>
+
+{% endblock %}

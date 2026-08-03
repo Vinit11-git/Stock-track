@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}Import Products | StockTrack{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='import_github.css') }}"
+>
+{% endblock %}
+
+{% block page_title %}Import Products{% endblock %}
+
+{% block page_subtitle %}
+Bulk import products from a GitHub CSV file
+{% endblock %}
+
+
+{% block content %}
+
+<div class="github-import-heading">
+
+    <div>
+        <h3>Import Stock from GitHub</h3>
+
+        <p>
+            Enter a raw GitHub CSV URL to add multiple products at once.
+        </p>
+    </div>
+
+    <div class="github-heading-actions">
+
+        <a
+            href="{{ url_for('scan_qr') }}"
+            class="secondary-button"
+        >
+            Scan QR Code
+        </a>
+
+        <a
+            href="{{ url_for('view_products') }}"
+            class="primary-button"
+        >
+            View Products
+        </a>
+
+    </div>
+
+</div>
+
+
+<div class="github-import-layout">
+
+    <section class="github-import-card">
+
+        <div class="github-card-header">
+
+            <div class="github-card-icon">
+                ⇩
+            </div>
+
+            <div>
+                <h3>GitHub CSV Import</h3>
+
+                <p>
+                    Products already stored with the same name and expiry
+                    date will be skipped.
+                </p>
+            </div>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for('import_github') }}"
+            class="github-import-form"
+            id="githubImportForm"
+        >
+
+            <div class="github-form-group">
+
+                <label for="csv_url">
+                    Raw GitHub CSV URL
+                    <span class="required">*</span>
+                </label>
+
+                <textarea
+    id="csv_url"
+    name="csv_url"
+    rows="5"
+    maxlength="2048"
+    placeholder="https://raw.githubusercontent.com/username/repository/main/products.csv"
+    required
+>{{ csv_url|default("", true) }}</textarea>
+
+                <small>
+                    The URL must use raw.githubusercontent.com and end with
+                    .csv.
+                </small>
+
+            </div>
+
+
+            <div
+                class="github-url-message"
+                id="githubUrlMessage"
+                hidden
+            ></div>
+
+
+            {% if message %}
+
+                {% set message_lower = message|lower %}
+
+                <div
+                    class="
+                        github-import-result
+
+                        {% if 'failed' in message_lower or 'error' in message_lower %}
+                            github-result-error
+                        {% else %}
+                            github-result-success
+                        {% endif %}
+                    "
+                >
+
+                    <div class="github-result-icon">
+
+                        {% if 'failed' in message_lower or 'error' in message_lower %}
+                            ×
+                        {% else %}
+                            ✓
+                        {% endif %}
+
+                    </div>
+
+                    <div>
+                        <strong>Import Result</strong>
+                        <p>{{ message }}</p>
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="github-form-actions">
+
+                <button
+                    type="button"
+                    class="cancel-button"
+                    id="clearGithubUrl"
+                >
+                    Clear
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                    id="githubImportButton"
+                    disabled
+                >
+                    Import Products
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <aside class="github-information-card">
+
+        <div class="github-card-header">
+
+            <div class="github-card-icon">
+                CSV
+            </div>
+
+            <div>
+                <h3>CSV Requirements</h3>
+
+                <p>
+                    Format your delivery file using these columns.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="github-information-body">
+
+            <div class="github-column-list">
+
+                <div>
+                    <span>1</span>
+
+                    <div>
+                        <strong>name</strong>
+                        <p>Product name</p>
+                    </div>
+                </div>
+
+
+                <div>
+                    <span>2</span>
+
+                    <div>
+                        <strong>category</strong>
+                        <p>Product category</p>
+                    </div>
+                </div>
+
+
+                <div>
+                    <span>3</span>
+
+                    <div>
+                        <strong>quantity</strong>
+                        <p>Number of units received</p>
+                    </div>
+                </div>
+
+
+                <div>
+                    <span>4</span>
+
+                    <div>
+                        <strong>expiry_date</strong>
+                        <p>Date in YYYY-MM-DD format</p>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="github-csv-example">
+
+                <div class="github-example-header">
+                    Example products.csv
+                </div>
+
+                <pre>name,category,quantity,expiry_date
+Coca-Cola 500ml,Minerals,24,2026-08-20
+Tayto Cheese and Onion,Crisps,18,2026-09-10
+Ballygowan Water 500ml,Minerals,30,2027-01-15</pre>
+
+            </div>
+
+
+            <div class="github-import-notice">
+
+                <div class="github-notice-icon">
+                    !
+                </div>
+
+                <div>
+                    <strong>Duplicate protection</strong>
+
+                    <p>
+                        A product is treated as a duplicate when its name
+                        and expiry date match an existing product.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    const githubUrlInput =
+        document.getElementById("csv_url");
+
+    const githubImportButton =
+        document.getElementById("githubImportButton");
+
+    const githubUrlMessage =
+        document.getElementById("githubUrlMessage");
+
+    const clearGithubUrlButton =
+        document.getElementById("clearGithubUrl");
+
+    const githubImportForm =
+        document.getElementById("githubImportForm");
+
+
+    function isValidGithubCsvUrl(value) {
+        try {
+            const parsedUrl = new URL(value);
+
+            return (
+                parsedUrl.protocol === "https:" &&
+                parsedUrl.hostname === "raw.githubusercontent.com" &&
+                parsedUrl.pathname.toLowerCase().endsWith(".csv")
+            );
+        } catch (error) {
+            return false;
+        }
+    }
+
+
+    function validateGithubUrl() {
+        const value = githubUrlInput.value.trim();
+
+        if (!value) {
+            githubImportButton.disabled = true;
+            githubUrlMessage.hidden = true;
+            return;
+        }
+
+        const validUrl =
+            isValidGithubCsvUrl(value);
+
+        githubImportButton.disabled = !validUrl;
+        githubUrlMessage.hidden = false;
+
+        if (validUrl) {
+            githubUrlMessage.textContent =
+                "Valid GitHub CSV URL. Ready to import.";
+
+            githubUrlMessage.className =
+                "github-url-message github-url-valid";
+        } else {
+            githubUrlMessage.textContent =
+                "Enter a valid raw GitHub URL ending in .csv.";
+
+            githubUrlMessage.className =
+                "github-url-message github-url-invalid";
+        }
+    }
+
+
+    githubUrlInput.addEventListener(
+        "input",
+        validateGithubUrl
+    );
+
+
+    clearGithubUrlButton.addEventListener(
+        "click",
+        function () {
+            githubUrlInput.value = "";
+            githubUrlMessage.hidden = true;
+            githubImportButton.disabled = true;
+            githubUrlInput.focus();
+        }
+    );
+
+
+    githubImportForm.addEventListener(
+        "submit",
+        function (event) {
+            if (
+                !isValidGithubCsvUrl(
+                    githubUrlInput.value.trim()
+                )
+            ) {
+                event.preventDefault();
+                validateGithubUrl();
+            }
+        }
+    );
+
+
+    validateGithubUrl();
+</script>
+
+{% endblock %}

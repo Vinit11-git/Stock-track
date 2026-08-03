@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}StockTrack{% endblock %}</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <div class="brand-logo">ST</div>
+
+            <div>
+                <h1>StockTrack</h1>
+                <p>Shop Inventory</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="/dashboard"
+                class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+                <span class="nav-icon">▦</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/add"
+                class="nav-link {% if request.path == '/add' %}active{% endif %}">
+                <span class="nav-icon">＋</span>
+                <span>Add Product</span>
+            </a>
+
+            <a href="/products"
+                class="nav-link {% if request.path == '/products' %}active{% endif %}">
+                <span class="nav-icon">□</span>
+                <span>Products</span>
+            </a>
+
+            <div class="nav-section-title">Stock Management</div>
+
+            <a href="/stock-history"
+                class="nav-link {% if request.path == '/stock-history' %}active{% endif %}">
+                <span class="nav-icon">↕</span>
+                <span>Stock History</span>
+            </a>
+
+            <a href="/import-github"
+                class="nav-link {% if request.path == '/import-github' %}active{% endif %}">
+                <span class="nav-icon">⇩</span>
+                <span>Import Products</span>
+            </a>
+
+            <a href="/scan-qr"
+                class="nav-link {% if request.path == '/scan-qr' %}active{% endif %}">
+                <span class="nav-icon">▣</span>
+                <span>Scan QR Code</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="shop-status">
+                <span class="status-dot"></span>
+
+                <div>
+                    <strong>Shop System</strong>
+                    <small>Database connected</small>
+                </div>
+            </div>
+        </div>
+
+    </aside>
+
+
+    <!-- Main content -->
+    <div class="main-area">
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+                <button
+                    type="button"
+                    class="menu-button"
+                    id="menuButton"
+                    aria-label="Toggle navigation"
+                >
+                    ☰
+                </button>
+
+                <div>
+                    <h2>{% block page_title %}Inventory Management{% endblock %}</h2>
+                    <p>{% block page_subtitle %}Manage your shop stock{% endblock %}</p>
+                </div>
+            </div>
+
+            <div class="topbar-user">
+                <div class="user-avatar">A</div>
+
+                <div class="user-details">
+                    <strong>Admin</strong>
+                    <span>Shop Manager</span>
+                </div>
+            </div>
+
+        </header>
+
+
+        <main class="page-content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-container">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <span>{{ message }}</span>
+
+                                <button
+                                    type="button"
+                                    onclick="this.parentElement.remove()"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}
+            {% endblock %}
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+<script>
+    const sidebar = document.getElementById("sidebar");
+    const menuButton = document.getElementById("menuButton");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+    menuButton.addEventListener("click", function () {
+        sidebar.classList.toggle("sidebar-open");
+        sidebarOverlay.classList.toggle("overlay-visible");
+    });
+
+    sidebarOverlay.addEventListener("click", function () {
+        sidebar.classList.remove("sidebar-open");
+        sidebarOverlay.classList.remove("overlay-visible");
+    });
+</script>
+
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>

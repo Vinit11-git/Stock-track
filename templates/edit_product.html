@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product | StockTrack{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='edit_product.css') }}"
+>
+{% endblock %}
+
+{% block page_title %}Edit Product{% endblock %}
+
+{% block page_subtitle %}
+Update product information stored in your inventory
+{% endblock %}
+
+
+{% block content %}
+
+<div class="edit-product-heading">
+
+    <div>
+        <h3>Edit Product Details</h3>
+
+        <p>
+            Update the product name, category or expiry date.
+        </p>
+    </div>
+
+    <a
+        href="{{ url_for('view_products') }}"
+        class="secondary-button"
+    >
+        Back to Products
+    </a>
+
+</div>
+
+
+<div class="edit-product-layout">
+
+    <aside class="edit-product-summary">
+
+        <div class="edit-product-summary-header">
+
+            <div class="edit-product-letter">
+                {{ product["name"][0]|upper if product["name"] else "?" }}
+            </div>
+
+            <div>
+                <span>Selected Product</span>
+
+                <h3 id="productNamePreview">
+                    {{ product["name"] }}
+                </h3>
+
+                <p id="productCategoryPreview">
+                    {{ product["category"] }}
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="edit-product-summary-details">
+
+            <div class="edit-summary-item">
+
+                <span>Product ID</span>
+
+                <strong>
+                    #{{ product["id"] }}
+                </strong>
+
+            </div>
+
+
+            <div class="edit-summary-item">
+
+                <span>Current Quantity</span>
+
+                <strong>
+                    {{ product["quantity"] }}
+                    <small>units</small>
+                </strong>
+
+            </div>
+
+
+            <div class="edit-summary-item">
+
+                <span>Expiry Date</span>
+
+                <strong id="expiryDatePreview">
+                    {{ product["expiry_date"] }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="edit-product-stock-notice">
+
+            <div class="edit-stock-notice-icon">
+                ↕
+            </div>
+
+            <div>
+                <strong>Need to change the quantity?</strong>
+
+                <p>
+                    Use Stock In or Stock Out so the movement is recorded
+                    in your stock history.
+                </p>
+            </div>
+
+        </div>
+
+
+        <a
+            href="{{ url_for(
+                'stock_update',
+                product_id=product['id']
+            ) }}"
+            class="edit-manage-stock-button"
+        >
+            Manage Stock
+        </a>
+
+    </aside>
+
+
+    <form
+        method="POST"
+        action="{{ url_for(
+            'edit_product',
+            product_id=product['id']
+        ) }}"
+        class="edit-product-form"
+    >
+
+        <div class="edit-form-header">
+
+            <div class="edit-form-icon">
+                ✎
+            </div>
+
+            <div>
+                <h3>Product Information</h3>
+
+                <p>
+                    Changes will be applied to this product.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="edit-form-body">
+
+            <div class="edit-form-group">
+
+                <label for="name">
+                    Product Name
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ product['name'] }}"
+                    placeholder="Enter product name"
+                    maxlength="100"
+                    required
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <div class="edit-form-group">
+
+                <label for="category">
+                    Category
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="category"
+                    name="category"
+                    value="{{ product['category'] }}"
+                    placeholder="Enter product category"
+                    list="edit-category-list"
+                    maxlength="50"
+                    required
+                    autocomplete="off"
+                >
+
+                <datalist id="edit-category-list">
+
+                    {% for category in categories %}
+
+                        <option value="{{ category }}">
+
+                    {% endfor %}
+
+                </datalist>
+
+            </div>
+
+
+            <div class="edit-form-group">
+
+                <label for="expiry_date">
+                    Expiry Date
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="date"
+                    id="expiry_date"
+                    name="expiry_date"
+                    value="{{ product['expiry_date'] }}"
+                    required
+                >
+
+                <small>
+                    Enter the expiry date printed on the product.
+                </small>
+
+            </div>
+
+
+            <div class="edit-readonly-quantity">
+
+                <div>
+
+                    <span>Current Stock Quantity</span>
+
+                    <strong>
+                        {{ product["quantity"] }} units
+                    </strong>
+
+                </div>
+
+                <a
+                    href="{{ url_for(
+                        'stock_update',
+                        product_id=product['id']
+                    ) }}"
+                >
+                    Update Stock
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="edit-form-actions">
+
+            <a
+                href="{{ url_for('view_products') }}"
+                class="cancel-button"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                Save Changes
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    const nameInput =
+        document.getElementById("name");
+
+    const categoryInput =
+        document.getElementById("category");
+
+    const expiryInput =
+        document.getElementById("expiry_date");
+
+    const productNamePreview =
+        document.getElementById("productNamePreview");
+
+    const productCategoryPreview =
+        document.getElementById("productCategoryPreview");
+
+    const expiryDatePreview =
+        document.getElementById("expiryDatePreview");
+
+
+    function updateNamePreview() {
+        productNamePreview.textContent =
+            nameInput.value.trim() || "Unnamed Product";
+    }
+
+
+    function updateCategoryPreview() {
+        productCategoryPreview.textContent =
+            categoryInput.value.trim() || "No category";
+    }
+
+
+    function updateExpiryPreview() {
+        if (!expiryInput.value) {
+            expiryDatePreview.textContent =
+                "Not selected";
+
+            return;
+        }
+
+        const selectedDate = new Date(
+            expiryInput.value + "T00:00:00"
+        );
+
+        expiryDatePreview.textContent =
+            selectedDate.toLocaleDateString(
+                "en-IE",
+                {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                }
+            );
+    }
+
+
+    nameInput.addEventListener(
+        "input",
+        updateNamePreview
+    );
+
+    categoryInput.addEventListener(
+        "input",
+        updateCategoryPreview
+    );
+
+    expiryInput.addEventListener(
+        "change",
+        updateExpiryPreview
+    );
+
+
+    updateNamePreview();
+    updateCategoryPreview();
+    updateExpiryPreview();
+</script>
+
+{% endblock %}

@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Stock History | StockTrack{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='stock_history.css') }}"
+>
+{% endblock %}
+
+{% block page_title %}Stock History{% endblock %}
+
+{% block page_subtitle %}
+Review stock received and removed from your inventory
+{% endblock %}
+
+
+{% block content %}
+
+<div class="history-page-heading">
+
+    <div>
+        <h3>Stock Movement History</h3>
+
+        <p>
+            Track deliveries, sales, damaged stock and other inventory changes.
+        </p>
+    </div>
+
+    <div class="history-heading-actions">
+
+        <a
+            href="{{ url_for('view_products') }}"
+            class="secondary-button"
+        >
+            View Products
+        </a>
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="primary-button"
+        >
+            Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+
+<section class="history-summary-grid">
+
+    <div class="history-summary-card">
+
+        <div class="history-summary-icon history-icon-total">
+            ↕
+        </div>
+
+        <div>
+            <span>Total Movements</span>
+            <strong>{{ total_movements }}</strong>
+        </div>
+
+    </div>
+
+
+    <div class="history-summary-card">
+
+        <div class="history-summary-icon history-icon-in">
+            +
+        </div>
+
+        <div>
+            <span>Stock In Entries</span>
+            <strong>{{ stock_in_count }}</strong>
+        </div>
+
+    </div>
+
+
+    <div class="history-summary-card">
+
+        <div class="history-summary-icon history-icon-out">
+            −
+        </div>
+
+        <div>
+            <span>Stock Out Entries</span>
+            <strong>{{ stock_out_count }}</strong>
+        </div>
+
+    </div>
+
+
+    <div class="history-summary-card">
+
+        <div class="history-summary-icon history-icon-net">
+            #
+        </div>
+
+        <div>
+            <span>Net Stock Movement</span>
+
+            <strong
+                class="{% if net_stock_movement < 0 %}history-negative-value{% endif %}"
+            >
+                {% if net_stock_movement > 0 %}+{% endif %}
+                {{ net_stock_movement }}
+            </strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="history-panel">
+
+    <form
+        method="GET"
+        action="{{ url_for('stock_history') }}"
+        class="history-toolbar"
+    >
+
+        <div class="history-search-box">
+
+            <span class="history-search-icon">⌕</span>
+
+            <input
+                type="search"
+                name="q"
+                value="{{ search_term }}"
+                placeholder="Search by product or note"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <div class="history-filter-controls">
+
+            <select
+                name="type"
+                aria-label="Filter by movement type"
+            >
+
+                <option value="">
+                    All Movements
+                </option>
+
+                <option
+                    value="IN"
+                    {% if movement_filter == "IN" %}
+                        selected
+                    {% endif %}
+                >
+                    Stock In
+                </option>
+
+                <option
+                    value="OUT"
+                    {% if movement_filter == "OUT" %}
+                        selected
+                    {% endif %}
+                >
+                    Stock Out
+                </option>
+
+            </select>
+
+
+            <button
+                type="submit"
+                class="history-filter-button"
+            >
+                Apply Filter
+            </button>
+
+
+            {% if search_term or movement_filter %}
+
+                <a
+                    href="{{ url_for('stock_history') }}"
+                    class="history-clear-button"
+                >
+                    Clear
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+
+    <div class="history-result-bar">
+
+        <span>
+            Showing
+            <strong>{{ movements|length }}</strong>
+            movement{% if movements|length != 1 %}s{% endif %}
+        </span>
+
+
+        {% if search_term %}
+
+            <span class="history-active-filter">
+                Search: {{ search_term }}
+            </span>
+
+        {% endif %}
+
+
+        {% if movement_filter == "IN" %}
+
+            <span class="history-active-filter">
+                Stock In
+            </span>
+
+        {% elif movement_filter == "OUT" %}
+
+            <span class="history-active-filter">
+                Stock Out
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if movements %}
+
+        <div class="history-table-wrapper">
+
+            <table class="history-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Movement</th>
+                        <th>Quantity</th>
+                        <th>Note</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for movement in movements %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="history-date">
+
+                                    <strong>
+                                        {{ movement["movement_date"] }}
+                                    </strong>
+
+                                    <span>
+                                        Movement #{{ movement["id"] }}
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="history-product">
+
+                                    <div class="history-product-letter">
+                                        {{ movement["product_name"][0]|upper }}
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            {{ movement["product_name"] }}
+                                        </strong>
+
+                                        <span>
+                                            Product #{{ movement["product_id"] }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                {% if movement["movement_type"] == "IN" %}
+
+                                    <span class="history-movement-badge history-movement-in">
+
+                                        <span>+</span>
+                                        Stock In
+
+                                    </span>
+
+                                {% elif movement["movement_type"] == "OUT" %}
+
+                                    <span class="history-movement-badge history-movement-out">
+
+                                        <span>−</span>
+                                        Stock Out
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="history-movement-badge">
+
+                                        {{ movement["movement_type"] }}
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="history-quantity">
+
+                                    {% if movement["movement_type"] == "IN" %}
+
+                                        <strong class="history-quantity-in">
+                                            +{{ movement["quantity"] }}
+                                        </strong>
+
+                                    {% else %}
+
+                                        <strong class="history-quantity-out">
+                                            −{{ movement["quantity"] }}
+                                        </strong>
+
+                                    {% endif %}
+
+                                    <span>units</span>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                {% if movement["note"] %}
+
+                                    <span class="history-note">
+                                        {{ movement["note"] }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="history-empty-note">
+                                        No note provided
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="history-empty-state">
+
+            <div class="history-empty-icon">
+                ↕
+            </div>
+
+
+            {% if search_term or movement_filter %}
+
+                <h3>No matching movements found</h3>
+
+                <p>
+                    Try changing your search or removing the movement filter.
+                </p>
+
+                <a
+                    href="{{ url_for('stock_history') }}"
+                    class="secondary-button"
+                >
+                    Clear Filters
+                </a>
+
+            {% else %}
+
+                <h3>No stock movements recorded</h3>
+
+                <p>
+                    Stock In and Stock Out activity will appear here after a
+                    product quantity is updated.
+                </p>
+
+                <a
+                    href="{{ url_for('view_products') }}"
+                    class="primary-button"
+                >
+                    View Products
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

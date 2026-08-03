@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+inventory.db
+inventory_backup.db
+*.db-journal
+.pytest_cache/
+.vscode/
+.DS_Store
+.kilo/
