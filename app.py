@@ -20,7 +20,7 @@ if not SECRET_KEY:
 app.config["SECRET_KEY"] = SECRET_KEY
 
 # Database file name
-DATABASE = "inventory.db"
+DATABASE = os.environ.get("DATABASE_PATH", "inventory.db")
 
 # Folder where product images will be uploaded
 UPLOAD_FOLDER = "static/uploads"
